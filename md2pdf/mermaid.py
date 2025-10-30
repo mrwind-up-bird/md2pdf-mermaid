@@ -41,6 +41,7 @@ def render_mermaid_to_png(mermaid_code, output_path, width=1400, height=1000, sc
         return False
 
     # HTML template with Mermaid.js from CDN
+    # Using Mermaid v11 (latest stable version)
     html_template = f"""
     <!DOCTYPE html>
     <html>
@@ -53,7 +54,8 @@ def render_mermaid_to_png(mermaid_code, output_path, width=1400, height=1000, sc
                 flowchart: {{
                     useMaxWidth: false,
                     htmlLabels: true
-                }}
+                }},
+                securityLevel: 'loose'
             }});
         </script>
         <style>
@@ -93,18 +95,121 @@ def render_mermaid_to_png(mermaid_code, output_path, width=1400, height=1000, sc
             # Wait for Mermaid to render
             page.wait_for_selector('#diagram svg', timeout=15000)
 
-            # Wait a bit more for stabilization
-            page.wait_for_timeout(1000)
+            # Smart polling: Wait for valid dimensions (up to 5 seconds)
+            # This allows simple diagrams to render quickly while giving complex ones time
+            page.evaluate('''() => {
+                return new Promise((resolve) => {
+                    const svg = document.querySelector('#diagram svg');
+                    const maxAttempts = 50;  // 50 attempts * 100ms = 5 seconds max
+                    let attempts = 0;
+
+                    const checkDimensions = () => {
+                        attempts++;
+
+                        // Try to get valid dimensions
+                        let hasValidDimensions = false;
+                        try {
+                            const bbox = svg.getBBox();
+                            if (bbox && bbox.width > 0 && bbox.height > 0 &&
+                                !isNaN(bbox.width) && !isNaN(bbox.height)) {
+                                hasValidDimensions = true;
+                            }
+                        } catch (e) {
+                            // getBBox failed, try other methods
+                        }
+
+                        // Check viewBox as fallback
+                        if (!hasValidDimensions) {
+                            const viewBox = svg.getAttribute('viewBox');
+                            if (viewBox) {
+                                const parts = viewBox.split(/\\s+/);
+                                if (parts.length >= 4) {
+                                    const w = parseFloat(parts[2]);
+                                    const h = parseFloat(parts[3]);
+                                    if (w > 0 && h > 0 && !isNaN(w) && !isNaN(h)) {
+                                        hasValidDimensions = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        // If we have valid dimensions or reached max attempts, resolve
+                        if (hasValidDimensions || attempts >= maxAttempts) {
+                            resolve();
+                        } else {
+                            // Check again in 100ms
+                            setTimeout(checkDimensions, 100);
+                        }
+                    };
+
+                    // Start checking after initial 500ms delay
+                    setTimeout(checkDimensions, 500);
+                });
+            }''')
 
             # CRITICAL: Prepare SVG with proper viewBox (removes whitespace)
             # Then render to canvas at exact target dimensions
             svg_data = page.evaluate(f'''() => {{
                 const svg = document.querySelector('#diagram svg');
 
-                // Get actual content bounding box
-                const bbox = svg.getBBox();
-                const naturalWidth = bbox.width;
-                const naturalHeight = bbox.height;
+                // Try multiple methods to get valid dimensions
+                let naturalWidth, naturalHeight, bbox;
+
+                // Method 1: Try getBBox() first
+                try {{
+                    bbox = svg.getBBox();
+                    if (bbox && bbox.width > 0 && bbox.height > 0 &&
+                        !isNaN(bbox.width) && !isNaN(bbox.height)) {{
+                        naturalWidth = bbox.width;
+                        naturalHeight = bbox.height;
+                    }}
+                }} catch (e) {{
+                    console.log('getBBox failed:', e);
+                }}
+
+                // Method 2: Try SVG viewBox attribute
+                if (!naturalWidth || !naturalHeight) {{
+                    const viewBox = svg.getAttribute('viewBox');
+                    if (viewBox) {{
+                        const parts = viewBox.split(/\\s+/);
+                        if (parts.length >= 4) {{
+                            const w = parseFloat(parts[2]);
+                            const h = parseFloat(parts[3]);
+                            if (w > 0 && h > 0 && !isNaN(w) && !isNaN(h)) {{
+                                naturalWidth = w;
+                                naturalHeight = h;
+                            }}
+                        }}
+                    }}
+                }}
+
+                // Method 3: Try SVG width/height attributes
+                if (!naturalWidth || !naturalHeight) {{
+                    const w = parseFloat(svg.getAttribute('width'));
+                    const h = parseFloat(svg.getAttribute('height'));
+                    if (w > 0 && h > 0 && !isNaN(w) && !isNaN(h)) {{
+                        naturalWidth = w;
+                        naturalHeight = h;
+                    }}
+                }}
+
+                // Method 4: Try getBoundingClientRect()
+                if (!naturalWidth || !naturalHeight) {{
+                    const rect = svg.getBoundingClientRect();
+                    if (rect && rect.width > 0 && rect.height > 0) {{
+                        naturalWidth = rect.width;
+                        naturalHeight = rect.height;
+                    }}
+                }}
+
+                // Method 5: Use defaults as last resort
+                if (!naturalWidth || naturalWidth <= 0 || isNaN(naturalWidth)) {{
+                    naturalWidth = {width};
+                }}
+                if (!naturalHeight || naturalHeight <= 0 || isNaN(naturalHeight)) {{
+                    naturalHeight = {height};
+                }}
+
                 const aspectRatio = naturalHeight / naturalWidth;
 
                 // Calculate target dimensions (width * scale for quality)
@@ -119,7 +224,11 @@ def render_mermaid_to_png(mermaid_code, output_path, width=1400, height=1000, sc
                 }}
 
                 // Set viewBox to content bounds (removes whitespace)
-                svg.setAttribute('viewBox', `${{bbox.x}} ${{bbox.y}} ${{bbox.width}} ${{bbox.height}}`);
+                // Only set if bbox has valid values
+                if (bbox && bbox.width > 0 && bbox.height > 0 &&
+                    !isNaN(bbox.width) && !isNaN(bbox.height)) {{
+                    svg.setAttribute('viewBox', `${{bbox.x}} ${{bbox.y}} ${{bbox.width}} ${{bbox.height}}`);
+                }}
 
                 // Return dimensions for canvas rendering
                 return {{

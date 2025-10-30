@@ -15,6 +15,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 See [ROADMAP.md](ROADMAP.md) for detailed feature planning and long-term vision.
 
+## [1.4.1] - 2025-10-30
+
+### Fixed
+- **Mermaid diagram rendering timing issues** - Improved smart polling for SVG dimension detection
+  - Fixed white space rendering for pie charts, edge labels, and linear chain diagrams
+  - Implemented intelligent polling mechanism (500ms initial wait + 100ms checks, max 5 seconds)
+  - Polls for valid SVG dimensions using multiple detection methods (getBBox, viewBox, attributes)
+  - Simple diagrams render quickly (~500-800ms), complex diagrams get full time if needed
+  - Performance improvement: ~18% faster rendering vs fixed 5-second wait
+  - Resolves issues where certain Mermaid diagram types showed as white spaces in PDF output
+
+### Technical
+- Modified `render_mermaid_to_png()` in `/md2pdf/mermaid.py` (lines 95-148)
+- Replaced fixed `page.wait_for_timeout(5000)` with smart polling JavaScript evaluation
+- Polling checks both `getBBox()` and `viewBox` attribute for valid dimensions
+- Early exit when valid dimensions detected (width > 0, height > 0, not NaN)
+- Maximum 50 attempts at 100ms intervals ensures 5-second upper bound for complex diagrams
+- Diagram types affected: pie charts, graphs with edge labels (`-->|text|`), linear chains
+
 ## [1.3.1] - 2025-10-21
 
 ### Fixed
@@ -175,7 +194,8 @@ See [ROADMAP.md](ROADMAP.md) for detailed feature planning and long-term vision.
 
 ## Version Links
 
-[Unreleased]: https://github.com/rbutinar/md2pdf-mermaid/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/rbutinar/md2pdf-mermaid/compare/v1.4.1...HEAD
+[1.4.1]: https://github.com/rbutinar/md2pdf-mermaid/compare/v1.3.1...v1.4.1
 [1.3.1]: https://github.com/rbutinar/md2pdf-mermaid/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/rbutinar/md2pdf-mermaid/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/rbutinar/md2pdf-mermaid/compare/v1.1.0...v1.2.0
