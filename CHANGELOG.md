@@ -15,6 +15,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 See [ROADMAP.md](ROADMAP.md) for detailed feature planning and long-term vision.
 
+## [1.4.2] - 2025-10-31
+
+### Fixed
+- **Missing dependency** - Added `markdown>=3.0.0` to all dependency configurations
+  - Fixed `ModuleNotFoundError: No module named 'markdown'` on fresh installations
+  - Updated `requirements.txt`, `pyproject.toml`, and `setup.py`
+  - Ensures markdown module is automatically installed with package
+
+### Added
+- **macOS Setup Guide** - Created comprehensive [MACOS_SETUP.md](MACOS_SETUP.md) documentation
+  - Detailed instructions for virtual environment setup on macOS
+  - Troubleshooting section for common macOS issues
+  - Tips for permanent aliases and global installation
+  - Architecture support information (Apple Silicon and Intel)
+
+### Documentation
+- **macOS installation instructions** added to [README.md](README.md)
+  - Quick start guide for macOS users with virtual environment
+  - Troubleshooting for "externally-managed-environment" error
+  - Link to detailed MACOS_SETUP.md guide
+
+### Technical
+- This is a patch release focused on improving installation experience for macOS users
+- No code changes to core functionality
+- All existing features remain unchanged
+
 ## [1.4.1] - 2025-10-30
 
 ### Fixed

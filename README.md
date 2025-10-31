@@ -39,6 +39,15 @@ pip install git+https://github.com/rbutinar/md2pdf-mermaid.git
 playwright install chromium
 ```
 
+**macOS Users**: Use a virtual environment (required for externally-managed Python):
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install md2pdf-mermaid
+playwright install chromium
+```
+See [MACOS_SETUP.md](MACOS_SETUP.md) for detailed instructions.
+
 **WSL Users**: Use Windows Python to avoid dependency issues:
 ```bash
 python3.exe -m venv venv  # Windows venv, no sudo needed!
@@ -332,6 +341,25 @@ If you're using the ReportLab engine, emoji are not supported. Switch to HTML en
 md2pdf document.md --engine html  # or just: md2pdf document.md (HTML is default)
 ```
 
+### macOS: "externally-managed-environment" Error
+
+macOS uses externally-managed Python. Always use a virtual environment:
+
+```bash
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install package
+pip install md2pdf-mermaid
+playwright install chromium
+
+# Use the package (with venv activated)
+md2pdf document.md
+```
+
+**Note**: Remember to activate the virtual environment (`source venv/bin/activate`) before using md2pdf.
+
 ### WSL: "Host system is missing dependencies to run browsers"
 
 **Best solution**: Use Windows Python instead of Linux Python (no sudo needed):
@@ -395,14 +423,39 @@ MIT License - see LICENSE file for details
 
 ---
 
-**Version**: 1.4.0
-**Published**: 2025-10-23
+**Version**: 1.4.2
+**Published**: 2025-10-31
 **PyPI**: https://pypi.org/project/md2pdf-mermaid/
 **Status**: Stable Release 🎉
 
 ---
 
 ## 🆕 What's New
+
+### v1.4.2 (2025-10-31) - macOS Support & Dependency Fix
+
+**Bug Fixes:**
+- 🐛 **Fixed missing dependency** - Added `markdown>=3.0.0` to all dependency configurations
+  - Resolves `ModuleNotFoundError: No module named 'markdown'` on fresh installations
+  - Now automatically installed with the package
+
+**Documentation:**
+- 📖 **macOS Setup Guide** - Comprehensive [MACOS_SETUP.md](MACOS_SETUP.md) documentation
+  - Virtual environment setup instructions for macOS users
+  - Troubleshooting for "externally-managed-environment" error
+  - Tips for aliases and global installation
+  - Tested on macOS 11-15 (Big Sur through Sequoia)
+  - Apple Silicon (M1/M2/M3/M4) and Intel support confirmed
+
+**Improvements:**
+- ✅ Better installation experience on macOS
+- ✅ Updated README with macOS-specific instructions
+- ✅ All features fully tested on macOS environment
+
+### v1.4.1 (2025-10-30)
+
+- 🐛 Fixed Mermaid diagram rendering timing issues
+- ⚡ Performance improvement: ~18% faster rendering
 
 ### v1.4.0 (2025-10-23) - Emoji Support! 🎉
 

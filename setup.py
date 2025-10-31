@@ -11,7 +11,7 @@ long_description = readme_file.read_text(encoding="utf-8") if readme_file.exists
 
 setup(
     name="md2pdf-mermaid",
-    version="1.3.1",
+    version="1.4.2",
     author="Roberto Butinar",
     author_email="roberto.butinar@gmail.com",
     description="Convert Markdown to PDF with Mermaid diagram rendering",
@@ -41,6 +41,7 @@ setup(
         "reportlab>=4.0.0",
         "playwright>=1.40.0",
         "pillow>=10.0.0",
+        "markdown>=3.0.0",
     ],
     extras_require={
         "dev": [
