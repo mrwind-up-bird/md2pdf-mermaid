@@ -753,7 +753,7 @@ def convert_markdown_to_pdf(markdown_text, output_path, title="Document",
 
             # Apply indentation and use different bullet styles per level
             indent = '&nbsp;&nbsp;&nbsp;&nbsp;' * normalized_level
-            bullet_styles = ['&#8226;', '&#9675;', '&#9642;']  # \u2022 \u25cb \u25aa
+            bullet_styles = ['&#8226;', '&#9675;', '&#9642;']  # bullet, circle, square
             bullet = bullet_styles[normalized_level % len(bullet_styles)]
             story.append(Paragraph(f"{indent}{bullet} {text_content}", styles['Normal']))
             i += 1
