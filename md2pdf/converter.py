@@ -277,11 +277,21 @@ def parse_markdown(md_text):
         elif line.startswith('#### '):
             elements.append(('h4', line[5:].strip()))
 
-        # Lists
-        elif line.strip().startswith('- ') or line.strip().startswith('* '):
-            elements.append(('list', line.strip()[2:]))
-        elif re.match(r'^\d+\.\s', line.strip()):
-            elements.append(('numlist', re.sub(r'^\d+\.\s', '', line.strip())))
+        # Lists - capture indentation level for nested list support
+        elif re.match(r'^(\s*)[-*]\s', line):
+            # Dynamically detect nesting based on leading whitespace
+            match = re.match(r'^(\s*)[-*]\s(.*)$', line)
+            if match:
+                leading_spaces = len(match.group(1))
+                text_content = match.group(2)
+                elements.append(('list', (leading_spaces, text_content)))
+        elif re.match(r'^(\s*)\d+\.\s', line):
+            # Dynamically detect nesting for numbered lists
+            match = re.match(r'^(\s*)\d+\.\s(.*)$', line)
+            if match:
+                leading_spaces = len(match.group(1))
+                text_content = match.group(2)
+                elements.append(('numlist', (leading_spaces, text_content)))
 
         # Horizontal rule
         elif line.strip() in ['---', '***', '___']:
@@ -554,6 +564,14 @@ def convert_markdown_to_pdf(markdown_text, output_path, title="Document",
     # Calculate available width for images (page width minus margins)
     available_width = final_pagesize[0] - doc.leftMargin - doc.rightMargin
 
+    # List tracking for proper nesting and numbering
+    # Stack of (original_indent_spaces, normalized_level) for bullet lists
+    bullet_indent_stack = []
+    # Stack of (original_indent_spaces, normalized_level) for numbered lists
+    numlist_indent_stack = []
+    # Counters per normalized level for numbered lists
+    numlist_counters = {}
+
     # Process elements with look-ahead for keeping titles with diagrams
     i = 0
     while i < len(elements):
@@ -704,31 +722,86 @@ def convert_markdown_to_pdf(markdown_text, output_path, title="Document",
             i += 1
 
         elif elem_type == 'list':
+            # Extract indentation and text content
+            if isinstance(content, tuple):
+                leading_spaces, text_content = content
+            else:
+                leading_spaces, text_content = 0, content
+
+            # Calculate normalized indent level dynamically
+            if leading_spaces == 0:
+                # Top level - reset stack
+                bullet_indent_stack = [(0, 0)]
+                normalized_level = 0
+            else:
+                # Pop items with >= indentation (same or deeper level)
+                while bullet_indent_stack and bullet_indent_stack[-1][0] >= leading_spaces:
+                    bullet_indent_stack.pop()
+                if not bullet_indent_stack:
+                    bullet_indent_stack = [(0, 0)]
+                    normalized_level = 0
+                else:
+                    normalized_level = bullet_indent_stack[-1][1] + 1
+                bullet_indent_stack.append((leading_spaces, normalized_level))
+
             # Handle inline formatting
-            # Process emoji first
-            content = process_emoji(content, emoji_handler)
-            # Remove hyperlinks
-            content = remove_hyperlinks(content)
-            # Escape XML special characters
-            content = content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-            # Apply markdown formatting
-            content = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', content)
-            content = re.sub(r'`(.+?)`', r'<font face="courier" color="#666666">\1</font>', content)
-            story.append(Paragraph(f"&#8226; {content}", styles['Normal']))
+            text_content = process_emoji(text_content, emoji_handler)
+            text_content = remove_hyperlinks(text_content)
+            text_content = text_content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            text_content = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text_content)
+            text_content = re.sub(r'`(.+?)`', r'<font face="courier" color="#666666">\1</font>', text_content)
+
+            # Apply indentation and use different bullet styles per level
+            indent = '&nbsp;&nbsp;&nbsp;&nbsp;' * normalized_level
+            bullet_styles = ['&#8226;', '&#9675;', '&#9642;']  # \u2022 \u25cb \u25aa
+            bullet = bullet_styles[normalized_level % len(bullet_styles)]
+            story.append(Paragraph(f"{indent}{bullet} {text_content}", styles['Normal']))
             i += 1
 
         elif elem_type == 'numlist':
+            # Extract indentation and text content
+            if isinstance(content, tuple):
+                leading_spaces, text_content = content
+            else:
+                leading_spaces, text_content = 0, content
+
+            # Calculate normalized indent level dynamically
+            if leading_spaces == 0:
+                # Top level - reset stack and counters
+                numlist_indent_stack = [(0, 0)]
+                normalized_level = 0
+                # Reset all counters when starting a new top-level list
+                numlist_counters = {0: 0}
+            else:
+                # Pop items with >= indentation (same or deeper level)
+                while numlist_indent_stack and numlist_indent_stack[-1][0] >= leading_spaces:
+                    popped = numlist_indent_stack.pop()
+                    # Reset counter for the popped level
+                    if popped[1] in numlist_counters:
+                        del numlist_counters[popped[1]]
+                if not numlist_indent_stack:
+                    numlist_indent_stack = [(0, 0)]
+                    normalized_level = 0
+                else:
+                    normalized_level = numlist_indent_stack[-1][1] + 1
+                numlist_indent_stack.append((leading_spaces, normalized_level))
+
+            # Increment counter for this level
+            if normalized_level not in numlist_counters:
+                numlist_counters[normalized_level] = 0
+            numlist_counters[normalized_level] += 1
+            current_number = numlist_counters[normalized_level]
+
             # Handle inline formatting
-            # Process emoji first
-            content = process_emoji(content, emoji_handler)
-            # Remove hyperlinks
-            content = remove_hyperlinks(content)
-            # Escape XML special characters
-            content = content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-            # Apply markdown formatting
-            content = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', content)
-            content = re.sub(r'`(.+?)`', r'<font face="courier" color="#666666">\1</font>', content)
-            story.append(Paragraph(f"  {content}", styles['Normal']))
+            text_content = process_emoji(text_content, emoji_handler)
+            text_content = remove_hyperlinks(text_content)
+            text_content = text_content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            text_content = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text_content)
+            text_content = re.sub(r'`(.+?)`', r'<font face="courier" color="#666666">\1</font>', text_content)
+
+            # Apply indentation with proper numbering
+            indent = '&nbsp;&nbsp;&nbsp;&nbsp;' * normalized_level
+            story.append(Paragraph(f"{indent}{current_number}. {text_content}", styles['Normal']))
             i += 1
 
         elif elem_type == 'mermaid':

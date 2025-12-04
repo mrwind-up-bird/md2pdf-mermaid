@@ -78,6 +78,99 @@ def _process_mermaid_diagrams(markdown_text: str) -> Tuple[str, List[str]]:
     return markdown_text, temp_images
 
 
+def _normalize_list_indentation(markdown_text: str) -> str:
+    """
+    Normalize list indentation for proper nested list parsing.
+
+    The Python markdown library requires 4-space indentation for nested lists,
+    but markdown files can use any number of spaces (commonly 1-4). This function
+    dynamically detects the indentation levels and normalizes them to 4-space
+    indentation that the markdown library expects.
+
+    According to CommonMark, a nested list item must be indented by at least 1 space
+    more than the parent item's content. This function handles any indentation style.
+
+    Args:
+        markdown_text: Original markdown content
+
+    Returns:
+        Markdown with normalized list indentation
+    """
+    lines = markdown_text.split("\n")
+    result_lines = []
+    in_list = False
+    # Stack of (original_indent_spaces, normalized_level) to track nesting
+    indent_stack = []
+
+    for line in lines:
+        # Check if this is a list item (bullet or numbered)
+        stripped = line.lstrip()
+        leading_spaces = len(line) - len(stripped)
+
+        # Detect list items
+        is_bullet = stripped.startswith("- ") or stripped.startswith("* ")
+        is_numbered = bool(re.match(r"^\d+\.\s", stripped))
+        is_list_item = is_bullet or is_numbered
+
+        if is_list_item:
+            in_list = True
+
+            if leading_spaces == 0:
+                # Top level item - reset the stack
+                indent_stack = [(0, 0)]
+                normalized_level = 0
+            else:
+                # Find where this item fits in the hierarchy
+                # Pop items from stack that have >= indentation (same or deeper level)
+                while indent_stack and indent_stack[-1][0] >= leading_spaces:
+                    indent_stack.pop()
+
+                if not indent_stack:
+                    # No parent found, this is a new top-level item
+                    indent_stack = [(0, 0)]
+                    normalized_level = 0
+                else:
+                    # This is nested under the last item in the stack
+                    parent_level = indent_stack[-1][1]
+                    normalized_level = parent_level + 1
+
+                # Add this item to the stack
+                indent_stack.append((leading_spaces, normalized_level))
+
+            # Convert to 4-space indentation (what markdown library expects)
+            new_indent = "    " * normalized_level
+            result_lines.append(new_indent + stripped)
+
+        elif in_list and stripped == "":
+            # Empty line - might end the list or be a paragraph break within it
+            result_lines.append(line)
+
+        elif in_list and leading_spaces > 0 and not stripped.startswith("#"):
+            # Continuation of list item content (indented text that's not a new item)
+            # Find which list level this continuation belongs to
+            if indent_stack:
+                # Find the appropriate level based on indentation
+                cont_level = 0
+                for orig_indent, norm_level in indent_stack:
+                    if leading_spaces > orig_indent:
+                        cont_level = norm_level + 1
+                    else:
+                        break
+                new_indent = "    " * cont_level
+                result_lines.append(new_indent + stripped)
+            else:
+                result_lines.append(line)
+
+        else:
+            # Not a list item
+            if stripped.startswith("#") or (stripped != "" and leading_spaces == 0):
+                in_list = False
+                indent_stack = []
+            result_lines.append(line)
+
+    return "\n".join(result_lines)
+
+
 def markdown_to_html(markdown_text: str, title: str = "Document",
                      enable_mermaid: bool = True) -> str:
     """
@@ -91,6 +184,9 @@ def markdown_to_html(markdown_text: str, title: str = "Document",
     Returns:
         Complete HTML document with CSS
     """
+    # Normalize list indentation for proper nested list parsing
+    markdown_text = _normalize_list_indentation(markdown_text)
+
     # Pre-process Mermaid diagrams if enabled
     temp_images = []
     if enable_mermaid:
