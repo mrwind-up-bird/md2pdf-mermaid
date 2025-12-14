@@ -5,7 +5,10 @@
 [![License](https://img.shields.io/pypi/l/md2pdf-mermaid.svg)](https://github.com/rbutinar/md2pdf-mermaid/blob/master/LICENSE)
 
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/4de08a91-9eb6-46d5-bcfe-848ec0dca9b0" controls="controls" style="max-width: 100%;"></video>
+  <br>
+  
+https://github.com/user-attachments/assets/4de08a91-9eb6-46d5-bcfe-848ec0dca9b0
+
   <br>
   <em>Watch md2pdf-mermaid in action!</em>
 </div>
