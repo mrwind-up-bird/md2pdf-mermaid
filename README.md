@@ -7,7 +7,7 @@
 <div align="center">
   <br>
   
-https://github.com/user-attachments/assets/4de08a91-9eb6-46d5-bcfe-848ec0dca9b0
+https://github.com/user-attachments/assets/ae3a6aaf-3ac6-46b8-a1a5-e9fdf70533eb
 
   <br>
   <em>Watch md2pdf-mermaid in action!</em>
