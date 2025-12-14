@@ -15,6 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 See [ROADMAP.md](ROADMAP.md) for detailed feature planning and long-term vision.
 
+## [1.4.3] - 2025-12-14
+
+### Fixed
+- **Nested lists rendering** (Issue #2, PR #3)
+  - Fixed an issue where nested lists were not rendering correctly in both HTML and ReportLab engines
+  - Added comprehensive tests for nested list rendering
+
 ## [1.4.2] - 2025-10-31
 
 ### Fixed
