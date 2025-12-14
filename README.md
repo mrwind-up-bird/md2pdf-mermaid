@@ -4,6 +4,16 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/md2pdf-mermaid.svg)](https://pypi.org/project/md2pdf-mermaid/)
 [![License](https://img.shields.io/pypi/l/md2pdf-mermaid.svg)](https://github.com/rbutinar/md2pdf-mermaid/blob/master/LICENSE)
 
+<div align="center">
+  <video src="assets/demo.mp4" controls="controls" style="max-width: 100%;"></video>
+  <br>
+  <em>Watch md2pdf-mermaid in action!</em>
+</div>
+
+<div align="center">
+  <img src="assets/preview.png" alt="Preview: Markdown vs PDF" style="max-width: 100%;">
+</div>
+
 **Professional Markdown to PDF converter with emoji support and automatic Mermaid diagram rendering**
 
 Convert your Markdown documentation to beautiful PDFs with:
@@ -423,8 +433,8 @@ MIT License - see LICENSE file for details
 
 ---
 
-**Version**: 1.4.2
-**Published**: 2025-10-31
+**Version**: 1.4.3
+**Published**: 2025-12-14
 **PyPI**: https://pypi.org/project/md2pdf-mermaid/
 **Status**: Stable Release 🎉
 
