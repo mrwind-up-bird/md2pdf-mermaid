@@ -17,7 +17,19 @@ Get the latest release from [GitHub Releases](https://github.com/rbutinar/md2pdf
 
 ---
 
-## Installation
+## Quick Install (macOS & Linux)
+
+One-line installer that downloads the correct binary for your platform and installs it to `/usr/local/bin`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/rbutinar/md2pdf-mermaid/master/scripts/install.sh | bash
+```
+
+After installation, `md2pdf` is available system-wide. Done!
+
+---
+
+## Manual Installation
 
 ### macOS (Apple Silicon)
 
@@ -29,7 +41,7 @@ tar xzf md2pdf.tar.gz
 # Make executable (if needed)
 chmod +x md2pdf
 
-# Optional: move to a directory in your PATH
+# Install to PATH (so you can run 'md2pdf' from anywhere)
 sudo mv md2pdf /usr/local/bin/
 ```
 
@@ -49,10 +61,8 @@ Same steps as above, but download `md2pdf-macos-x86_64.tar.gz`.
 curl -L -o md2pdf.tar.gz https://github.com/rbutinar/md2pdf-mermaid/releases/latest/download/md2pdf-linux-x86_64.tar.gz
 tar xzf md2pdf.tar.gz
 
-# Make executable
+# Make executable and install to PATH
 chmod +x md2pdf
-
-# Optional: install system-wide
 sudo mv md2pdf /usr/local/bin/
 ```
 

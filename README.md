@@ -38,29 +38,18 @@ Convert your Markdown documentation to beautiful PDFs with:
 
 ### Option 1: Standalone Executable (No Python Required)
 
-Download a pre-built binary for your platform from [GitHub Releases](https://github.com/rbutinar/md2pdf-mermaid/releases):
-
-| Platform | File |
-|----------|------|
-| macOS (Apple Silicon) | `md2pdf-macos-arm64.tar.gz` |
-| macOS (Intel) | `md2pdf-macos-x86_64.tar.gz` |
-| Linux (x86_64) | `md2pdf-linux-x86_64.tar.gz` |
-| Windows (x86_64) | `md2pdf-windows-x86_64.zip` |
-
+**macOS & Linux** — one-line install:
 ```bash
-# macOS / Linux
-tar xzf md2pdf-macos-arm64.tar.gz
-chmod +x md2pdf
-./md2pdf document.md
-
-# Windows
-# Extract md2pdf-windows-x86_64.zip, then:
-md2pdf.exe document.md
+curl -fsSL https://raw.githubusercontent.com/rbutinar/md2pdf-mermaid/master/scripts/install.sh | bash
 ```
+
+This downloads the correct binary for your platform and installs it to `/usr/local/bin` so you can use `md2pdf` from anywhere.
+
+**Windows** — download `md2pdf-windows-x86_64.zip` from [GitHub Releases](https://github.com/rbutinar/md2pdf-mermaid/releases), extract, and add to PATH.
 
 On first run, Chromium (~150 MB) is automatically downloaded. To pre-download:
 ```bash
-./md2pdf --setup-browser
+md2pdf --setup-browser
 ```
 
 See [STANDALONE.md](STANDALONE.md) for full details.
