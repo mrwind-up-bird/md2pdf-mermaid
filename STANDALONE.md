@@ -6,7 +6,7 @@ Pre-built standalone binaries that work without Python. Download, run, done.
 
 ## Download
 
-Get the latest release from [GitHub Releases](https://github.com/rbutinar/md2pdf-mermaid/releases).
+Get the latest release from [GitHub Releases](https://github.com/mrwind-up-bird/md2pdf-mermaid/releases).
 
 | Platform | Architecture | File | Size |
 |----------|-------------|------|------|
@@ -22,7 +22,7 @@ Get the latest release from [GitHub Releases](https://github.com/rbutinar/md2pdf
 One-line installer that downloads the correct binary for your platform and installs it to `/usr/local/bin`:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rbutinar/md2pdf-mermaid/master/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/mrwind-up-bird/md2pdf-mermaid/master/scripts/install.sh | bash
 ```
 
 After installation, `md2pdf` is available system-wide. Done!
@@ -35,7 +35,7 @@ After installation, `md2pdf` is available system-wide. Done!
 
 ```bash
 # Download and extract
-curl -L -o md2pdf.tar.gz https://github.com/rbutinar/md2pdf-mermaid/releases/latest/download/md2pdf-macos-arm64.tar.gz
+curl -L -o md2pdf.tar.gz https://github.com/mrwind-up-bird/md2pdf-mermaid/releases/latest/download/md2pdf-macos-arm64.tar.gz
 tar xzf md2pdf.tar.gz
 
 # Make executable (if needed)
@@ -58,7 +58,7 @@ Same steps as above, but download `md2pdf-macos-x86_64.tar.gz`.
 
 ```bash
 # Download and extract
-curl -L -o md2pdf.tar.gz https://github.com/rbutinar/md2pdf-mermaid/releases/latest/download/md2pdf-linux-x86_64.tar.gz
+curl -L -o md2pdf.tar.gz https://github.com/mrwind-up-bird/md2pdf-mermaid/releases/latest/download/md2pdf-linux-x86_64.tar.gz
 tar xzf md2pdf.tar.gz
 
 # Make executable and install to PATH
@@ -82,7 +82,7 @@ sudo dnf install -y nss atk at-spi2-atk cups-libs libdrm \
 
 ### Windows
 
-1. Download `md2pdf-windows-x86_64.zip` from the [releases page](https://github.com/rbutinar/md2pdf-mermaid/releases)
+1. Download `md2pdf-windows-x86_64.zip` from the [releases page](https://github.com/mrwind-up-bird/md2pdf-mermaid/releases)
 2. Extract the zip file
 3. Open a terminal (Command Prompt or PowerShell) in the extracted folder
 
@@ -196,7 +196,7 @@ If you want to build the standalone executable yourself:
 
 ```bash
 # Clone the repository
-git clone https://github.com/rbutinar/md2pdf-mermaid.git
+git clone https://github.com/mrwind-up-bird/md2pdf-mermaid.git
 cd md2pdf-mermaid
 
 # Install dependencies

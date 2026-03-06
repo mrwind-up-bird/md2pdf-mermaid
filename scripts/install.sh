@@ -4,7 +4,7 @@
 
 set -e
 
-REPO="rbutinar/md2pdf-mermaid"
+REPO="mrwind-up-bird/md2pdf-mermaid"
 INSTALL_DIR="/usr/local/bin"
 BINARY="md2pdf"
 

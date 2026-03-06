@@ -40,12 +40,12 @@ Convert your Markdown documentation to beautiful PDFs with:
 
 **macOS & Linux** — one-line install:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rbutinar/md2pdf-mermaid/master/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/mrwind-up-bird/md2pdf-mermaid/master/scripts/install.sh | bash
 ```
 
 This downloads the correct binary for your platform and installs it to `/usr/local/bin` so you can use `md2pdf` from anywhere.
 
-**Windows** — download `md2pdf-windows-x86_64.zip` from [GitHub Releases](https://github.com/rbutinar/md2pdf-mermaid/releases), extract, and add to PATH.
+**Windows** — download `md2pdf-windows-x86_64.zip` from [GitHub Releases](https://github.com/mrwind-up-bird/md2pdf-mermaid/releases), extract, and add to PATH.
 
 On first run, Chromium (~150 MB) is automatically downloaded. To pre-download:
 ```bash
