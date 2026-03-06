@@ -46,11 +46,15 @@ def main():
 
     # Verify
     print(f"\nVerifying...")
-    result = subprocess.run([exe_path, "--version"], capture_output=True, text=True)
+    result = subprocess.run([exe_path, "--version"], capture_output=True, text=True, timeout=30)
     if result.returncode == 0:
         print(f"  Version: {result.stdout.strip()}")
     else:
         print(f"  Warning: --version check failed", file=sys.stderr)
+        if result.stdout.strip():
+            print(f"  stdout: {result.stdout.strip()}", file=sys.stderr)
+        if result.stderr.strip():
+            print(f"  stderr: {result.stderr.strip()}", file=sys.stderr)
         return 1
 
     return 0

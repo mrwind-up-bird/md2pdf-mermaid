@@ -17,7 +17,7 @@ playwright_datas, playwright_binaries, playwright_hiddenimports = collect_all('p
 markdown_hiddenimports = collect_submodules('markdown')
 
 a = Analysis(
-    ['md2pdf/cli.py'],
+    ['md2pdf/__main__.py'],
     pathex=[],
     binaries=playwright_binaries,
     datas=playwright_datas,

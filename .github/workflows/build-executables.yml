@@ -14,8 +14,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-13
-            artifact: md2pdf-macos-x86_64
           - os: macos-14
             artifact: md2pdf-macos-arm64
           - os: ubuntu-22.04
