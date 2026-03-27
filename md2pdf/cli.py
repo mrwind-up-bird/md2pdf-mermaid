@@ -29,6 +29,8 @@ Examples:
   md2pdf doc.md --emoji-strategy remove      # Remove emoji, keep symbols
   md2pdf doc.md --emoji-strategy pilmoji     # Colored emoji (requires pilmoji)
   md2pdf doc.md --engine html                # Full emoji support (HTML/Chromium)
+  md2pdf doc.md --theme nyx                  # Dark theme with cyan accents
+  md2pdf doc.md --no-math                    # Disable math equation rendering
 
 For more information: https://github.com/rbutinar/md2pdf-mermaid
         """
@@ -93,6 +95,17 @@ For more information: https://github.com/rbutinar/md2pdf-mermaid
         help="Emoji rendering strategy: auto=try pilmoji then remove (default), pilmoji=colored images (requires pilmoji), remove=remove emoji keep symbols, keep=preserve all (needs font support)"
     )
     parser.add_argument(
+        "--theme",
+        choices=["default", "nyx"],
+        default="default",
+        help="PDF theme/styling: default=clean light theme, nyx=dark theme with cyan accents (HTML engine only)"
+    )
+    parser.add_argument(
+        "--no-math",
+        action="store_true",
+        help="Disable KaTeX math equation rendering (HTML engine only)"
+    )
+    parser.add_argument(
         "--engine",
         choices=["html", "reportlab"],
         default="html",
@@ -151,7 +164,9 @@ For more information: https://github.com/rbutinar/md2pdf-mermaid
         # Convert to PDF
         print(f"Converting {input_path} to PDF...")
         if args.engine == 'html':
-            print("  (Using HTML/Chromium engine - full emoji support)")
+            theme_info = f", theme: {args.theme}" if args.theme != "default" else ""
+            math_info = ", math: disabled" if args.no_math else ""
+            print(f"  (Using HTML/Chromium engine - full emoji support{theme_info}{math_info})")
             if args.no_mermaid:
                 print("  (Mermaid rendering disabled)")
             result = convert_markdown_to_pdf_html(
@@ -160,7 +175,9 @@ For more information: https://github.com/rbutinar/md2pdf-mermaid
                 title=title,
                 page_size=args.page_size,
                 orientation=args.orientation,
-                enable_mermaid=not args.no_mermaid
+                enable_mermaid=not args.no_mermaid,
+                enable_math=not args.no_math,
+                theme=args.theme
             )
         else:
             if args.no_mermaid:

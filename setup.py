@@ -11,7 +11,7 @@ long_description = readme_file.read_text(encoding="utf-8") if readme_file.exists
 
 setup(
     name="md2pdf-mermaid",
-    version="1.4.3",
+    version="1.6.0",
     author="Roberto Butinar",
     author_email="roberto.butinar@gmail.com",
     description="Convert Markdown to PDF with Mermaid diagram rendering",
@@ -20,7 +20,7 @@ setup(
     url="https://github.com/rbutinar/md2pdf-mermaid",
     packages=find_packages(),
     package_data={
-        'md2pdf': ['fonts/*.ttf'],
+        'md2pdf': ['fonts/*.ttf', 'themes/*.css'],
     },
     include_package_data=True,
     license="MIT",

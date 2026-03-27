@@ -13,6 +13,62 @@ from typing import Optional, List, Tuple
 import markdown
 
 
+def _protect_math_expressions(markdown_text: str) -> Tuple[str, List[Tuple[str, bool]]]:
+    """
+    Extract math expressions before markdown processing to prevent
+    LaTeX syntax (underscores, asterisks, etc.) from being interpreted.
+
+    Handles:
+        - Display math: $$...$$
+        - Inline math: $...$
+
+    Returns:
+        Tuple of (modified_text, list of (expression, is_display))
+    """
+    expressions = []
+    placeholder_prefix = "MATHPLACEHOLDER"
+
+    # First, extract display math ($$...$$) - must come before inline
+    def replace_display(match):
+        idx = len(expressions)
+        expressions.append((match.group(1), True))
+        return f'{placeholder_prefix}_{idx}_END'
+
+    text = re.sub(r'\$\$(.*?)\$\$', replace_display, markdown_text, flags=re.DOTALL)
+
+    # Then extract inline math ($...$)
+    # Avoid matching currency like $100 or already-extracted placeholders
+    def replace_inline(match):
+        content = match.group(1)
+        # Skip if it looks like currency (starts with a digit)
+        if content and content[0].isdigit():
+            return match.group(0)
+        idx = len(expressions)
+        expressions.append((content, False))
+        return f'{placeholder_prefix}_{idx}_END'
+
+    text = re.sub(r'(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)', replace_inline, text)
+
+    return text, expressions
+
+
+def _restore_math_expressions(html_text: str, expressions: List[Tuple[str, bool]]) -> str:
+    """
+    Restore math expressions after markdown processing.
+    Wraps them in appropriate delimiters for KaTeX auto-render.
+    """
+    placeholder_prefix = "MATHPLACEHOLDER"
+    for idx, (expr, is_display) in enumerate(expressions):
+        placeholder = f'{placeholder_prefix}_{idx}_END'
+        if is_display:
+            replacement = f'$${expr}$$'
+        else:
+            replacement = f'${expr}$'
+        # The placeholder might be wrapped in <p> tags
+        html_text = html_text.replace(placeholder, replacement)
+    return html_text
+
+
 def _process_mermaid_diagrams(markdown_text: str) -> Tuple[str, List[str]]:
     """
     Find and render Mermaid diagrams, replace with <img> tags.
@@ -171,8 +227,52 @@ def _normalize_list_indentation(markdown_text: str) -> str:
     return "\n".join(result_lines)
 
 
+def _get_theme_css(theme: str = "default") -> str:
+    """
+    Load CSS for the specified theme.
+
+    Args:
+        theme: Theme name ('default', 'nyx')
+
+    Returns:
+        CSS string for the theme
+    """
+    themes_dir = Path(__file__).parent / "themes"
+    theme_file = themes_dir / f"{theme}.css"
+
+    if theme_file.exists():
+        return theme_file.read_text(encoding='utf-8')
+
+    # Fallback to default if theme not found
+    default_file = themes_dir / "default.css"
+    if default_file.exists():
+        return default_file.read_text(encoding='utf-8')
+
+    # Ultimate fallback - minimal CSS
+    return "body { font-family: sans-serif; font-size: 11pt; line-height: 1.6; }"
+
+
+def _get_katex_resources() -> str:
+    """Return KaTeX CDN link and script tags for math rendering."""
+    return """
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+        onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true},{left: '$', right: '$', display: false}], throwOnError: false});"></script>
+    <style>
+        /* KaTeX display math styling */
+        .katex-display {
+            margin: 1em 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        .katex { font-size: 1.1em; }
+    </style>"""
+
+
 def markdown_to_html(markdown_text: str, title: str = "Document",
-                     enable_mermaid: bool = True) -> str:
+                     enable_mermaid: bool = True, enable_math: bool = True,
+                     theme: str = "default") -> str:
     """
     Convert Markdown to HTML with proper styling for PDF.
 
@@ -180,12 +280,19 @@ def markdown_to_html(markdown_text: str, title: str = "Document",
         markdown_text: Markdown content
         title: Document title
         enable_mermaid: Enable Mermaid diagram rendering
+        enable_math: Enable KaTeX math equation rendering
+        theme: Theme name ('default', 'nyx')
 
     Returns:
         Complete HTML document with CSS
     """
     # Normalize list indentation for proper nested list parsing
     markdown_text = _normalize_list_indentation(markdown_text)
+
+    # Protect math expressions before markdown processing
+    math_expressions = []
+    if enable_math:
+        markdown_text, math_expressions = _protect_math_expressions(markdown_text)
 
     # Pre-process Mermaid diagrams if enabled
     temp_images = []
@@ -202,7 +309,17 @@ def markdown_to_html(markdown_text: str, title: str = "Document",
     ])
     content_html = md.convert(markdown_text)
 
-    # Create complete HTML document with nice styling
+    # Restore math expressions after markdown processing
+    if enable_math and math_expressions:
+        content_html = _restore_math_expressions(content_html, math_expressions)
+
+    # Load theme CSS
+    theme_css = _get_theme_css(theme)
+
+    # Build KaTeX resources if math is enabled
+    katex_head = _get_katex_resources() if enable_math else ""
+
+    # Create complete HTML document
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -210,159 +327,9 @@ def markdown_to_html(markdown_text: str, title: str = "Document",
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title}</title>
     <style>
-        @page {{
-            size: A4;
-            margin: 2cm;
-        }}
-
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                         "Helvetica Neue", Arial, sans-serif,
-                         "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
-            font-size: 11pt;
-            line-height: 1.6;
-            color: #333;
-            max-width: 100%;
-            margin: 0;
-            padding: 0;
-        }}
-
-        h1 {{
-            font-size: 24pt;
-            color: #2c3e50;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 8px;
-            margin-top: 24px;
-            margin-bottom: 16px;
-        }}
-
-        h2 {{
-            font-size: 18pt;
-            color: #34495e;
-            border-bottom: 1px solid #95a5a6;
-            padding-bottom: 6px;
-            margin-top: 20px;
-            margin-bottom: 12px;
-        }}
-
-        h3 {{
-            font-size: 14pt;
-            color: #555;
-            margin-top: 16px;
-            margin-bottom: 10px;
-        }}
-
-        h4 {{
-            font-size: 12pt;
-            color: #666;
-            margin-top: 14px;
-            margin-bottom: 8px;
-        }}
-
-        p {{
-            margin: 8px 0;
-        }}
-
-        ul, ol {{
-            margin: 8px 0;
-            padding-left: 24px;
-        }}
-
-        li {{
-            margin: 4px 0;
-        }}
-
-        code {{
-            background-color: #f8f8f8;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            padding: 2px 6px;
-            font-family: "Courier New", Courier, monospace;
-            font-size: 10pt;
-            color: #666;
-        }}
-
-        pre {{
-            background-color: #f8f8f8;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 12px;
-            overflow-x: auto;
-            margin: 12px 0;
-        }}
-
-        pre code {{
-            background: none;
-            border: none;
-            padding: 0;
-            font-size: 9pt;
-        }}
-
-        table {{
-            border-collapse: collapse;
-            width: 100%;
-            margin: 12px 0;
-        }}
-
-        th {{
-            background-color: #3498db;
-            color: white;
-            font-weight: bold;
-            padding: 10px;
-            text-align: left;
-            border: 1px solid #ddd;
-        }}
-
-        td {{
-            padding: 8px;
-            border: 1px solid #ddd;
-        }}
-
-        tr:nth-child(even) {{
-            background-color: #f9f9f9;
-        }}
-
-        blockquote {{
-            border-left: 4px solid #3498db;
-            padding-left: 16px;
-            margin: 12px 0;
-            color: #666;
-            font-style: italic;
-        }}
-
-        hr {{
-            border: none;
-            border-top: 2px solid #eee;
-            margin: 20px 0;
-        }}
-
-        a {{
-            color: #3498db;
-            text-decoration: none;
-        }}
-
-        a:hover {{
-            text-decoration: underline;
-        }}
-
-        /* Emoji support - ensure they render properly */
-        .emoji {{
-            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
-        }}
-
-        /* Page break handling */
-        .page-break {{
-            page-break-after: always;
-        }}
-
-        /* Print-specific styles */
-        @media print {{
-            body {{
-                print-color-adjust: exact;
-                -webkit-print-color-adjust: exact;
-            }}
-        }}
+{theme_css}
     </style>
+{katex_head}
 </head>
 <body>
 {content_html}
@@ -427,8 +394,17 @@ async def html_to_pdf_playwright(html_content: str, output_path: str,
             # Load HTML file
             await page.goto(f'file://{os.path.abspath(html_path)}')
 
-            # Wait for any dynamic content
+            # Wait for any dynamic content (CSS, JS, fonts from CDN)
             await page.wait_for_load_state('networkidle')
+
+            # Wait for KaTeX rendering if math is present
+            try:
+                await page.wait_for_function(
+                    "() => typeof renderMathInElement === 'undefined' || document.querySelectorAll('.katex').length > 0 || !document.querySelector('body').textContent.includes('$')",
+                    timeout=5000
+                )
+            except Exception:
+                pass  # Don't fail if no math present
 
             # Generate PDF
             await page.pdf(**pdf_options)
@@ -454,7 +430,9 @@ def convert_markdown_to_pdf_html(markdown_text: str, output_path: str,
                                  title: str = "Document",
                                  page_size: str = 'A4',
                                  orientation: str = 'portrait',
-                                 enable_mermaid: bool = True) -> dict:
+                                 enable_mermaid: bool = True,
+                                 enable_math: bool = True,
+                                 theme: str = "default") -> dict:
     """
     Convert Markdown to PDF via HTML rendering (supports emoji!).
 
@@ -467,13 +445,17 @@ def convert_markdown_to_pdf_html(markdown_text: str, output_path: str,
         title: Document title
         page_size: Page size ('A4', 'A3', 'Letter')
         orientation: 'portrait' or 'landscape'
+        enable_mermaid: Enable Mermaid diagram rendering
+        enable_math: Enable KaTeX math equation rendering
+        theme: Theme name ('default', 'nyx')
 
     Returns:
         dict with success status
     """
     try:
         # Convert Markdown to HTML
-        html_content = markdown_to_html(markdown_text, title, enable_mermaid)
+        html_content = markdown_to_html(markdown_text, title, enable_mermaid,
+                                        enable_math, theme)
 
         # Use asyncio to run the async function
         import asyncio

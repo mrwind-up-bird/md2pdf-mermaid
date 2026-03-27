@@ -1,0 +1,209 @@
+/* md2pdf nyx theme - monospace headings, cyan accents on white */
+
+@page {
+    size: A4;
+    margin: 2cm;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif,
+                 "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+    font-size: 11pt;
+    line-height: 1.7;
+    color: #1a1a2e;
+    background-color: #ffffff;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Headings - monospace with cyan accent */
+h1, h2, h3, h4, h5, h6 {
+    font-family: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono",
+                 "Courier New", monospace;
+    letter-spacing: -0.02em;
+}
+
+h1 {
+    font-size: 26pt;
+    color: #0891b2;
+    border-bottom: 2px solid #0891b2;
+    padding-bottom: 10px;
+    margin-top: 28px;
+    margin-bottom: 18px;
+    font-weight: 700;
+}
+
+h2 {
+    font-size: 19pt;
+    color: #1a1a2e;
+    border-bottom: 1px solid #d1d5db;
+    padding-bottom: 6px;
+    margin-top: 24px;
+    margin-bottom: 14px;
+    font-weight: 600;
+}
+
+h3 {
+    font-size: 14pt;
+    color: #0e7490;
+    margin-top: 18px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+h4 {
+    font-size: 12pt;
+    color: #475569;
+    margin-top: 14px;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+p {
+    margin: 10px 0;
+}
+
+/* Lists */
+ul, ol {
+    margin: 10px 0;
+    padding-left: 24px;
+}
+
+li {
+    margin: 5px 0;
+}
+
+/* Inline code - monospace with subtle tint */
+code {
+    background-color: #f0f9ff;
+    border: 1px solid #e0e7ff;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-family: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono",
+                 "Courier New", monospace;
+    font-size: 10pt;
+    color: #0e7490;
+}
+
+/* Code blocks */
+pre {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 16px 0;
+}
+
+pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 9pt;
+    color: #334155;
+}
+
+/* Tables */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 16px 0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+th {
+    background-color: #0891b2;
+    color: #ffffff;
+    font-family: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono",
+                 "Courier New", monospace;
+    font-weight: 600;
+    font-size: 10pt;
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #0891b2;
+}
+
+td {
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    color: #1a1a2e;
+}
+
+tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+tr:nth-child(odd) {
+    background-color: transparent;
+}
+
+/* Blockquote */
+blockquote {
+    border-left: 3px solid #0891b2;
+    padding-left: 16px;
+    margin: 16px 0;
+    color: #64748b;
+    font-style: italic;
+    background-color: #f0f9ff;
+    padding: 12px 16px;
+    border-radius: 0 6px 6px 0;
+}
+
+blockquote p {
+    margin: 4px 0;
+}
+
+/* Horizontal rule */
+hr {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 24px 0;
+}
+
+/* Links */
+a {
+    color: #0891b2;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: #0e7490;
+}
+
+/* Strong & emphasis */
+strong {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+em {
+    color: #334155;
+}
+
+/* Emoji support */
+.emoji {
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+/* Page break handling */
+.page-break {
+    page-break-after: always;
+}
+
+/* Images */
+img {
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+/* Print-specific styles */
+@media print {
+    body {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+}
